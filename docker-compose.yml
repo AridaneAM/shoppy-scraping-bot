@@ -1,0 +1,17 @@
+version: "3.9"
+services: 
+  app:
+    build: ./app
+    environment: 
+      - TOKEN=1560578141:AAHxpwm7uK0bwaicch4y-HNUD7ddWGtHzRE
+  postgres:
+    build: ./database
+    environment: 
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=user
+      - POSTGRES_DB=userDB
+      - PGDATA=/dataFiles
+    volumes:
+      - ./database/dataFiles:/dataFiles
+    ports:
+      - '5432:5432'
