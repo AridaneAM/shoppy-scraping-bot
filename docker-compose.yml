@@ -4,6 +4,11 @@ services:
     build: ./app
     environment: 
       - TOKEN=1560578141:AAHxpwm7uK0bwaicch4y-HNUD7ddWGtHzRE
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=user
+      - POSTGRES_DB=userDB
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
   postgres:
     build: ./database
     environment: 
@@ -13,5 +18,5 @@ services:
       - PGDATA=/dataFiles
     volumes:
       - ./database/dataFiles:/dataFiles
-    ports:
-      - '5432:5432'
+    # ports:
+    #   - '5432:5432'
