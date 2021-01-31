@@ -168,7 +168,8 @@ def notify_stock():
     # Check stock for each product
     for product in products_dict:
         result = getProductData(product)
-
+        print("product: ")
+        print(product)
         old_stock = product[1]
         new_stock = result['stock']
         new_title = result['title']
