@@ -109,10 +109,10 @@ def received_add(update, context):
     if result['title'] == '0':
         text = "incorrect product ID"
     else:
-        # Check n of saved IDs in db(max:3)
+        # Check n of saved IDs in db(max:5)
         nProducts = len(db.fetchUserProducts(int(update.effective_chat.id)))
 
-        if nProducts < 3:
+        if nProducts < 5:
             # Save ID
             result = db.insertNotification(int(update.effective_chat.id), 
                 product, result['title'], result['stock'])
@@ -124,7 +124,7 @@ def received_add(update, context):
                 text = "⚠️ The product is already in the notification list"     
         else:
             # Format error message
-            text = ("⚠️ You have exceeded the limit of products notification (3), "
+            text = ("⚠️ You have exceeded the limit of products notification (5), "
                 "remove an ID before adding another one.")
 
     # Send telegram message
