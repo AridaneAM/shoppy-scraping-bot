@@ -14,103 +14,100 @@ class Database():
 
     def insertUser(self, chatID):
         cur = self.conn.cursor()     
-        # comprobar si no existe usuario ya
-        cur.execute("SELECT * FROM telegram_users WHERE tel_chat_id = %s", (chatID,))
+
+        # Check if user exists (tel_chat_id)
+        cur.execute("SELECT id FROM telegram_users WHERE tel_chat_id = %s", (chatID,))
         result = cur.fetchall()
 
-        # añadir usuario si no existe
         if len(result) == 0:
+            # Insert user (tel_chat_id)
             cur.execute("INSERT INTO telegram_users (tel_chat_id) VALUES (%s)",(chatID,))
         cur.close()
 
-    def insertProduct(self, chatID, productID, title, stock):
-        # comprobar si no extiste producto ya
+    def insertNotification(self, chatID, productID, title, stock):
+        cur = self.conn.cursor()     
+        # Check if product exists  (product)
+        cur.execute("SELECT id FROM products WHERE product = %s", (productID,))
+        result = cur.fetchall()
+
+        if len(result) == 0:
+            # Insert product (product)
+            cur.execute("INSERT INTO products (product, last_stock, title) VALUES (%s, %s, %s)",(productID, stock, title))
+
+        # Check if notification exists (tel_chat_id, product)
+        cur.execute("""
+            SELECT notifications.id FROM products
+            INNER JOIN notifications
+                ON notifications.product_id = products.id
+            INNER JOIN telegram_users
+                ON notifications.telegram_user_id = telegram_users.id
+            WHERE telegram_users.tel_chat_id = %s AND products.product = %s
+            """,(chatID, productID,))
+        result = cur.fetchall()
+
+        if len(result) == 0:
+            # Insert notification (tel_chat_id, product,)
+            cur.execute("SELECT id FROM telegram_users WHERE tel_chat_id = %s", (chatID,))
+            result = cur.fetchall()
+            user_id = result[0][0]
+            cur.execute("SELECT id FROM products WHERE product = %s", (productID,))
+            result = cur.fetchall()
+            product_id = result[0][0]            
+            cur.execute("INSERT INTO notifications (product_id, telegram_user_id) VALUES (%s, %s)",(product_id, user_id))
+
+            cur.close()
+            return 0
+        else:
+            cur.close()
+            return -1
+
+    def fetchUserProducts(self, chatID):
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM products WHERE product = %s", (productID,))
+        cur.execute("""
+            SELECT products.product, products.title
+            FROM products
+            INNER JOIN notifications
+                ON notifications.product_id = products.id
+            INNER JOIN telegram_users
+                ON notifications.telegram_user_id = telegram_users.id
+            WHERE tel_chat_id = %s
+        """, (chatID,))
         result = cur.fetchall()
         cur.close()
+        return result
 
-        # añadir producto si no existe
-        if len(result) == 0:
-            cur = self.conn.cursor()
-            cur.execute("INSERT INTO products (product) VALUES (%s)",(productID,))
-            cur.close()
-
-        # comprobar si no está registrada la notificación
+    def fetchAllProducts(self):
         cur = self.conn.cursor()
-        cur.execute("SELECT id FROM telegram_users WHERE tel_chat_id = %s", (chatID,))
+        cur.execute("""
+            SELECT telegram_users.tel_chat_id, products.product, products.last_stock
+            FROM products
+            INNER JOIN notifications
+                ON notifications.product_id = products.id
+            INNER JOIN telegram_users
+                ON notifications.telegram_user_id = telegram_users.id
+        """)
         result = cur.fetchall()
-        # SELECT m.name, cp.id_category
-        # FROM manufacturer as m
-        # INNER JOIN product as p
-        #     ON m.id_manufacturer = p.id_manufacturer
-        # INNER JOIN category_product as cp
-        #     ON p.id_product = cp.id_product
-        # WHERE cp.id_category = 'some value'
+        cur.close()
+        return result
 
-        # cur.execute("SELECT * FROM notifications WHERE AND product = %s", (productID,))
-        # result = cur.fetchall() 
-
-        # registrar si no
-        # obtener id telegram_user
+    def removeNotification(self, chatID, product):
         cur = self.conn.cursor()
         cur.execute("SELECT id FROM telegram_users WHERE tel_chat_id = %s", (chatID,))
         result = cur.fetchall()
         user_id = result[0][0]
-        # obtener id product
-        cur.execute("SELECT id FROM products WHERE product = %s", (productID,))
+        cur.execute("SELECT id FROM products WHERE product = %s", (product,))
         result = cur.fetchall()
-        product_id = result[0][0]
+        product_id = result[0][0]  
 
-        cur.execute("INSERT INTO notifications (product_id, telegram_user_id) VALUES (%s, %s)",(product_id, user_id))
+        cur.execute("DELETE FROM notifications WHERE product_id = %s AND telegram_user_id = %s", (product_id, user_id))
         cur.close()
 
-
-        # cur = self.conn.cursor()
-        # cur.execute("INSERT INTO notifications (product_id, telegram_user_id) VALUES (%s)",(productID,))
-        # cur.close()
-        # # rechazar si ya está registrada
-        # if len(result) == 0:
-   
-        #     return 0
-        # else:
-        #     cur.close()
-        #     return -1
-
-
-
-
-
-    def fetchProducts(self, chatID):
+    def removeProducts(self):
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM tel_user WHERE tel_chat_id = %s", (chatID,))
-        result = cur.fetchall()
+        cur.execute("DELETE FROM products WHERE id NOT IN (SELECT product_id FROM notifications)")
         cur.close()
-        products = []
-        for row in result:
-            products.append(row[2])
-        return products
 
-    def removeProduct(self, chatID, productID):
-        #comprobar si  extiste 
+    def updateStock(self, product, stock, title):
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM tel_user WHERE tel_chat_id = %s AND product = %s", (chatID, productID))
-        result = cur.fetchall()
+        cur.execute("UPDATE products SET last_stock = %s, title = %s WHERE product = %s", (stock, title, product))
         cur.close()
-
-        if len(result):
-            cur = self.conn.cursor()
-            cur.execute("DELETE FROM tel_user WHERE tel_chat_id = %s AND product = %s", (chatID, productID))
-            cur.close()
-
-
-
-# crear diccionario
-# coger todas las filas de db
-# ir mirando cada productID, si no existe añadir nueva key y en vale array el usuario
-    # si ya existe, añadir usuario al array de ese key
-
-# products = {
-#     "product1": ["user1"],
-#     "product2": ["user1", "user2"]
-# }

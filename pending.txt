@@ -1,29 +1,3 @@
-import collections
-
-result = [[11111, 'product2', 2],
-        [11111, 'product3', 1000],
-        [22222, 'product2', 2],
-        [33333, 'product1', 1],
-        [33333, 'product3',1000]]
-        
-result2 = {
-    "product2": [11111, 22222],
-    "product3": [22222, 33333],
-    "product1": [33333]
-}
-
-def algorithm():
-    products_dict = {}
-    for row in result:
-        if row[1] not in products_dict:
-            products_dict[row[1]] = []
-        products_dict[row[1]].append(row[0])
-    return products_dict
-    
-print(algorithm())
-print(result2)
-
-
 BEGIN TRANSACTION;
 
 -- /start 
@@ -107,6 +81,14 @@ SELECT id FROM telegram_users WHERE tel_chat_id = 11111;
 SELECT id FROM products WHERE product = 'product1';
 
 -- Check if notification exists (tel_chat_id, product)
+SELECT notifications.id
+FROM products
+INNER JOIN notifications
+    ON notifications.product_id = products.id
+INNER JOIN telegram_users
+    ON notifications.telegram_user_id = telegram_users.id
+WHERE telegram_users.tel_chat_id = 11111  AND products.product = 'product1';
+
 SELECT id FROM notifications WHERE product_id = 1 AND telegram_user_id = 1;
 
 -- Remove notification (tel_chat_id, product)   
@@ -127,4 +109,3 @@ INNER JOIN notifications
 INNER JOIN telegram_users
     ON notifications.telegram_user_id = telegram_users.id
 --WHERE products.product = 'product1';
-

@@ -49,7 +49,7 @@ def add_cmd(update, context):
     return TYPING_ADD
 
 def remove_cmd(update, context):
-    products = db.fetchProducts(int(update.effective_chat.id))
+    products = db.fetchUserProducts(int(update.effective_chat.id))
     reply_keyboard =[]
 
     if len(products) == 0:
@@ -61,7 +61,7 @@ def remove_cmd(update, context):
         return ConversationHandler.END
     else:
         for product in products:
-            reply_keyboard.append([product])
+            reply_keyboard.append([product[0]])         #TODO add string with product and title
         context.bot.send_message(
             chat_id=update.effective_chat.id, 
             text="Select the product you want to remove:",
@@ -70,7 +70,7 @@ def remove_cmd(update, context):
         return CHOOSING_REM
 
 def list_cmd(update, context):
-    products = db.fetchProducts(int(update.effective_chat.id))
+    products = db.fetchUserProducts(int(update.effective_chat.id))
     text = ""
 
     if len(products) == 0:
@@ -78,7 +78,7 @@ def list_cmd(update, context):
     else:
         text = "You have the following products registered:\n"
         for product in products:
-            text += "🔹 https://shoppy.gg/product/{product}\n".format(product=product)
+            text += "🔹 https://shoppy.gg/product/{product}\n".format(product=product[0]) #TODO add string with product and title
 
     context.bot.send_message(
         chat_id=update.effective_chat.id, 
@@ -90,37 +90,35 @@ def list_cmd(update, context):
 def received_add(update, context):
     product = update.message.text
 
-    db.insertProduct(int(update.effective_chat.id), product, "titulo", 1)
-    # # Scrapping product data
-    # result = getProductData(product)
-    # text = ""
+    # Scrapping product data
+    result = getProductData(product)
+    text = ""
 
-    # # Check ID
-    # if result['title'] == '0':
-    #     text = "incorrect product ID"
-    # else:
-    #     # Check n of saved IDs in db(max:3)
-    #     nProducts = len(db.fetchProducts(int(update.effective_chat.id)))
+    # Check ID
+    if result['title'] == '0':
+        text = "incorrect product ID"
+    else:
+        # Check n of saved IDs in db(max:3)
+        nProducts = len(db.fetchUserProducts(int(update.effective_chat.id)))
 
-    #     if nProducts < 3:
-    #         # Save ID
-    #         result = db.insertProduct(int(update.effective_chat.id), product)
-    #         if result == 0:
-    #             # Format message
-    #             text = "✅ Product added to the notification list successfully"                
-    #         else:
-    #             # Format message
-    #             text = "⚠️ The product is already in the notification list"     
-    #     else:
-    #         # Format error message
-    #          text = "⚠️ You have exceeded the limit of products notification (3), remove an ID before adding another one."
+        if nProducts < 3:
+            # Save ID
+            result = db.insertNotification(int(update.effective_chat.id), product, result['title'], result['stock'])
+            if result == 0:
+                # Format message
+                text = "✅ Product added to the notification list successfully"                
+            else:
+                # Format message
+                text = "⚠️ The product is already in the notification list"     
+        else:
+            # Format error message
+             text = "⚠️ You have exceeded the limit of products notification (3), remove an ID before adding another one."
 
     # Send telegram message
     context.bot.send_message(
         chat_id=update.effective_chat.id, 
-        text="text"
+        text=text
     )
-
     return ConversationHandler.END
 
 def received_check(update, context):
@@ -149,34 +147,57 @@ def received_check(update, context):
 
 def received_remove(update, context):
     product = update.message.text
-    db.removeProduct(int(update.effective_chat.id), product)
+    db.removeNotification(int(update.effective_chat.id), product)
     text = "✅ Product removed from the notification list successfully"                
     # Send telegram message
     context.bot.send_message(
         chat_id=update.effective_chat.id, 
         text=text
     )
-   
     return ConversationHandler.END
+
+def notify_stock():
+    # Get list of products
+    result = db.fetchAllProducts()
+    products_dict = {}
+    for row in result:
+        if row[1] not in products_dict:
+            products_dict[row[1]] = [[],[]]
+            products_dict[row[1]][1]= row[2]
+        products_dict[row[1]][0].append(row[0])
+    # Check stock for each product
+    for product in products_dict:
+        result = getProductData(product)
+
+        old_stock = product[1]
+        new_stock = result['stock']
+        new_title = result['title']
+
+        if new_stock > 0 and old_stock == 0:
+            # update new stock
+            db.updateStock(product, new_stock, new_title)
+            # send notification for each user
+            for user in product[0]:
+                text = "New stock of {product}".format(product=product)
+                context.bot.send_message(
+                    chat_id=update.effective_chat.id, 
+                    text=text
+                )
+
+def periodic_task(context):
+    # Remove products that are not longer registered for notificating
+    db.removeProducts()
+    # Check products and notify new stock
+    notify_stock()
 
 
 if __name__ == "__main__":
     # Create and init Database connection
     db = Database()
 
-
-
-
-
-
-
-
-
-
-
     # Create the Updater
-    # updater = Updater(token=os.environ['TOKEN'], use_context=True)
-    updater = Updater(token='1560578141:AAHxpwm7uK0bwaicch4y-HNUD7ddWGtHzRE', use_context=True)
+    updater = Updater(token=os.environ['TOKEN'], use_context=True)
+    # updater = Updater(token='1560578141:AAHxpwm7uK0bwaicch4y-HNUD7ddWGtHzRE', use_context=True)
 
     # Get the dispatcher to register handlers
     dispatcher = updater.dispatcher
@@ -201,6 +222,10 @@ if __name__ == "__main__":
 
     dispatcher.add_handler(conv_handler)
 
+    # Add periodic job
+    job_queue = updater.job_queue
+    job_queue.run_repeating(periodic_task, interval= 120.0, first=0.0)
+
     # Start the Bot
     updater.start_polling()
 
@@ -208,18 +233,3 @@ if __name__ == "__main__":
     # SIGTERM or SIGABRT. This should be used most of the time, since
     # start_polling() is non-blocking and will stop the bot gracefully.
     updater.idle()
-
-
-
-
-
-
-
-    # result = db.insertProduct(54321, "item8")
-    # print(result)
-    # products = db.fetchProducts(54321)
-    # print(products)
-    # db.removeProduct(54321, "item8")
-    # products = db.fetchProducts(54321)
-    # print(products)
-    # db.close()

@@ -18,9 +18,9 @@ def getProductData(product_id):
         stock = int(soup.find('span', {'class' : 'text-muted'}).text)
         title = soup.find('div', {'class' : 'card-header'}).text
         price = soup.find('h5', {'class' : 'user-product__about__price'}).text
-        return dict(stock= stock, 
+        return dict(stock = stock, 
                     title = title, 
-                    price= price)
+                    price = price)
     except:
         return dict(stock= 0, 
                     title = '0', 
