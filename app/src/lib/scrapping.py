@@ -12,6 +12,7 @@ def getProductData(product_id):
     driver.get(url)  
     time.sleep(3)
     html = driver.page_source 
+    driver.quit() 
     soup = BeautifulSoup(html, 'html.parser')
     
     try:
