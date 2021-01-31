@@ -248,7 +248,7 @@ if __name__ == "__main__":
 
     # Add periodic job
     job_queue = updater.job_queue
-    job_queue.run_repeating(periodic_task, interval= 60.0, first=5.0)
+    job_queue.run_repeating(periodic_task, interval= 300.0, first=30.0)
 
     # Start the Bot
     updater.start_polling()
