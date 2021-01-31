@@ -176,7 +176,6 @@ def notify_stock():
         print("Checking Stock: " + product)
         print("old stock: " + str(old_stock))
         print("new stock: " + str(new_stock))
-        print("new title: " + str(new_title))
 
         if new_stock > 0 and old_stock == 0:
             print("NEW STOCK!")
