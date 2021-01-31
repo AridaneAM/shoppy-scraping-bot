@@ -192,6 +192,7 @@ def notify_stock():
                 )
 
 def periodic_task(context):
+    print('periodic task')
     # Remove products that are not longer registered for notificating
     db.removeProducts()
     # Check products and notify new stock
