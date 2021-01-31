@@ -165,6 +165,8 @@ def notify_stock():
             products_dict[row[1]] = [[],[]]
             products_dict[row[1]][1]= row[2]
         products_dict[row[1]][0].append(row[0])
+    print("dict: ")
+    print(products_dict)
     # Check stock for each product
     for product in products_dict:
         result = getProductData(product)
