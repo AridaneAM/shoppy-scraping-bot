@@ -32,7 +32,9 @@ class Database():
 
         if len(result) == 0:
             # Insert product (product)
-            cur.execute("INSERT INTO products (product, last_stock, title) VALUES (%s, %s, %s)",(productID, stock, title))
+            cur.execute("""INSERT 
+                INTO products (product, last_stock, title) 
+                VALUES (%s, %s, %s)""",(productID, stock, title))
 
         # Check if notification exists (tel_chat_id, product)
         cur.execute("""
@@ -53,8 +55,9 @@ class Database():
             cur.execute("SELECT id FROM products WHERE product = %s", (productID,))
             result = cur.fetchall()
             product_id = result[0][0]            
-            cur.execute("INSERT INTO notifications (product_id, telegram_user_id) VALUES (%s, %s)",(product_id, user_id))
-
+            cur.execute("""INSERT 
+                INTO notifications (product_id, telegram_user_id) 
+                VALUES (%s, %s)""",(product_id, user_id))
             cur.close()
             return 0
         else:
@@ -85,29 +88,46 @@ class Database():
                 ON notifications.product_id = products.id
             INNER JOIN telegram_users
                 ON notifications.telegram_user_id = telegram_users.id
-        """)
+            """)
         result = cur.fetchall()
         cur.close()
         return result
 
     def removeNotification(self, chatID, product):
+        # Check if notification exists (tel_chat_id, product)
         cur = self.conn.cursor()
-        cur.execute("SELECT id FROM telegram_users WHERE tel_chat_id = %s", (chatID,))
+        cur.execute("""
+            SELECT telegram_users.id, products.id
+            FROM products
+            INNER JOIN notifications
+                ON notifications.product_id = products.id
+            INNER JOIN telegram_users
+                ON notifications.telegram_user_id = telegram_users.id
+            WHERE telegram_users.tel_chat_id = %s AND products.product = %s
+            """,(chatID, product))
         result = cur.fetchall()
-        user_id = result[0][0]
-        cur.execute("SELECT id FROM products WHERE product = %s", (product,))
-        result = cur.fetchall()
-        product_id = result[0][0]  
 
-        cur.execute("DELETE FROM notifications WHERE product_id = %s AND telegram_user_id = %s", (product_id, user_id))
-        cur.close()
+        if len(result) == 1:
+            user_id = result[0][0]
+            product_id = result[0][1]
+            cur.execute("""DELETE FROM notifications 
+                WHERE product_id = %s AND telegram_user_id = %s
+                """, (product_id, user_id))
+            cur.close()
+            return 0
+        else:
+            cur.close()
+            return -1
 
     def removeProducts(self):
         cur = self.conn.cursor()
-        cur.execute("DELETE FROM products WHERE id NOT IN (SELECT product_id FROM notifications)")
+        cur.execute("""DELETE FROM products 
+            WHERE id NOT IN (SELECT product_id FROM notifications)""")
         cur.close()
 
     def updateStock(self, product, stock, title):
         cur = self.conn.cursor()
-        cur.execute("UPDATE products SET last_stock = %s, title = %s WHERE product = %s", (stock, title, product))
+        cur.execute("""UPDATE products 
+            SET last_stock = %s, title = %s 
+            WHERE product = %s""", (stock, title, product))
         cur.close()

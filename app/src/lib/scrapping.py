@@ -10,7 +10,7 @@ def getProductData(product_id):
     options.headless = True
     driver = webdriver.Firefox(options=options, executable_path='./lib/geckodriver')
     driver.get(url)  
-    time.sleep(3)
+    time.sleep(2)
     html = driver.page_source 
     driver.quit() 
     soup = BeautifulSoup(html, 'html.parser')
