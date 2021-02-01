@@ -198,12 +198,10 @@ def notify_stock(context):
         new_title = result['title']
         print("old stock: " + str(old_stock))
         print("new stock: " + str(new_stock))
-        print("new title: " + str(new_title))
-
+        # update new stock
+        db.updateStock(product, new_stock, new_title)
         if new_stock > 0 and old_stock == 0:
-            print("UPDATEING NEW STOCK")
-            # update new stock
-            db.updateStock(product, new_stock, new_title)
+            print("UPDATING NEW STOCK")
             # send notification for each user
             for chat_id in products_dict[product][0]:
                 print("SENDING TO: " + str(chat_id))
