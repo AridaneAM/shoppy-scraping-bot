@@ -200,7 +200,7 @@ def notify_stock(context):
         print("new stock: " + str(new_stock))
         # update new stock
         db.updateStock(product, new_stock, new_title)
-        if new_stock > 0 and old_stock == 0:
+        if old_stock < new_stock:
             print("UPDATING NEW STOCK")
             # send notification for each user
             for chat_id in products_dict[product][0]:
