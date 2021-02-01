@@ -178,6 +178,7 @@ def received_remove(update, context):
     return ConversationHandler.END
 
 def notify_stock(context):
+    print("Periodic task (check stock)")
     # Get list of products
     result = db.fetchAllProducts()
     products_dict = {}
@@ -186,18 +187,26 @@ def notify_stock(context):
             products_dict[row[1]] = [[],[]]
             products_dict[row[1]][1]= row[2]
         products_dict[row[1]][0].append(row[0])
+    print("product_dict:")
+    print(products_dict)
     # Check stock for each product
     for product in products_dict:
+        print("checking:" + str(product))
         result = getProductData(product)
         old_stock = products_dict[product][1]
         new_stock = result['stock']
         new_title = result['title']
+        print("old stock: " + str(old_stock))
+        print("new stock: " + str(new_stock))
+        print("new title: " + str(new_title))
 
         if new_stock > 0 and old_stock == 0:
+            print("UPDATEING NEW STOCK")
             # update new stock
             db.updateStock(product, new_stock, new_title)
             # send notification for each user
             for chat_id in products_dict[product][0]:
+                print("SENDING TO: " + str(chat_id))
                 text = """
                 ❗️ New stock ❗️
                 \n\rℹ️ {title}
