@@ -3,7 +3,7 @@ services:
   app:
     build: ./app
     environment: 
-      - TOKEN=1560578141:AAHxpwm7uK0bwaicch4y-HNUD7ddWGtHzRE
+      - TOKEN=token
       - POSTGRES_PASSWORD=password
       - POSTGRES_USER=user
       - POSTGRES_DB=userDB
