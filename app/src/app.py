@@ -178,7 +178,6 @@ def received_remove(update, context):
     return ConversationHandler.END
 
 def notify_stock(context):
-    print("Periodic task (check stock)")
     # Get list of products
     result = db.fetchAllProducts()
     products_dict = {}
@@ -218,10 +217,12 @@ def notify_stock(context):
                 )
 
 def periodic_task(context):
+    print("Starting Periodic task (check stock)")
     # Remove products that are not longer registered for notificating
     db.removeProducts()
     # Check products and notify new stock
     notify_stock(context)
+    print("Ended Periodic task (check stock)")
 
 
 if __name__ == "__main__":
@@ -255,7 +256,7 @@ if __name__ == "__main__":
 
     # Add periodic job
     job_queue = updater.job_queue
-    job_queue.run_repeating(periodic_task, interval= 300.0, first=30.0)
+    job_queue.run_repeating(periodic_task, interval= 200.0, first=15.0)
 
     # Start the Bot
     updater.start_polling()
