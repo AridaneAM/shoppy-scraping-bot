@@ -8,7 +8,7 @@ def getProductData(product_id):
     options = webdriver.ChromeOptions()
     options.headless = True
     options.add_argument('--no-sandbox')
-    chromedriver_path = './lib/chromedriver'
+    chromedriver_path = './chromedriver'
     options.binary_location= '/usr/bin/google-chrome'
     driver = webdriver.Chrome(options=options,  executable_path=chromedriver_path)
     driver.get(url)  
@@ -28,5 +28,3 @@ def getProductData(product_id):
         return dict(stock= 0, 
                     title = '0', 
                     price= '0')     
-
-getProductData("wxGIadj")   
