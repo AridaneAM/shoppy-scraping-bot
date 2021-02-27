@@ -28,3 +28,5 @@ def getProductData(product_id):
         return dict(stock= 0, 
                     title = '0', 
                     price= '0')     
+
+getProductData('asd')
