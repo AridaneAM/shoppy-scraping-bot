@@ -7,6 +7,7 @@ def getProductData(product_id):
     url = 'https://shoppy.gg/product/' + product_id
     options = webdriver.ChromeOptions()
     options.headless = True
+    opts.add_argument('--no-sandbox')
     driver = webdriver.Chrome(options=options, executable_path='./lib/chromedriver')
     driver.get(url)  
     time.sleep(2)
