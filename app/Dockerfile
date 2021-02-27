@@ -1,5 +1,6 @@
 FROM ubuntu:bionic
 
+# Install Python
 RUN apt-get update && apt-get install -y \
     python3 python3-pip netcat \
     fonts-liberation libappindicator3-1 libasound2 libatk-bridge2.0-0 \
@@ -7,13 +8,21 @@ RUN apt-get update && apt-get install -y \
     curl unzip wget \
     xvfb
 
-RUN FIREFOX_SETUP=firefox-setup.tar.bz2 && \
-    apt-get purge firefox && \
-    wget -O $FIREFOX_SETUP "https://download.mozilla.org/?product=firefox-latest&os=linux64" && \
-    tar xjf $FIREFOX_SETUP -C /opt/ && \
-    ln -s /opt/firefox/firefox /usr/bin/firefox && \
-    rm $FIREFOX_SETUP
+# Install Chrome WebDriver
+RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
+    mkdir -p /opt/chromedriver && \
+    curl -sS -o /tmp/chromedriver_linux64.zip http://chromedriver.storage.googleapis.com/$CHROMEDRIVER_VERSION/chromedriver_linux64.zip && \
+    unzip -qq /tmp/chromedriver_linux64.zip -d /opt/chromedriver && \
+    rm /tmp/chromedriver_linux64.zip && \
+    chmod +x /opt/chromedriver/chromedriver && \
+    ln -fs /opt/chromedriver/chromedriver /usr/local/bin/chromedriver
 
+# Install Google Chrome
+RUN curl -sS -o - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - && \
+    echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list && \
+    apt-get -yqq update && \
+    apt-get -yqq install google-chrome-stable && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

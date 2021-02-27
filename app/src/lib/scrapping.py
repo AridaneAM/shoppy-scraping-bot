@@ -1,14 +1,16 @@
 import requests
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
 import time
 
 def getProductData(product_id):
     url = 'https://shoppy.gg/product/' + product_id
-    options = Options()
+    options = webdriver.ChromeOptions()
     options.headless = True
-    driver = webdriver.Firefox(options=options, executable_path='./geckodriver')
+    options.add_argument('--no-sandbox')
+    chromedriver_path = '/usr/local/bin/chromedriver'
+    options.binary_location= '/usr/bin/google-chrome'
+    driver = webdriver.Chrome(options=options,  executable_path=chromedriver_path)
     driver.get(url)  
     time.sleep(2)
     html = driver.page_source 
