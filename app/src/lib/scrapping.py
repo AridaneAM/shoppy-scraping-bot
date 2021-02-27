@@ -8,7 +8,7 @@ def getProductData(product_id):
     options = webdriver.ChromeOptions()
     options.headless = True
     options.add_argument('--no-sandbox')
-    chromedriver_path = './chromedriver'
+    chromedriver_path = './lib/chromedriver'
     options.binary_location= '/usr/bin/google-chrome'
     driver = webdriver.Chrome(options=options,  executable_path=chromedriver_path)
     driver.get(url)  
