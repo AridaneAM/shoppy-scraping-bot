@@ -8,7 +8,7 @@ def getProductData(product_id):
     url = 'https://shoppy.gg/product/' + product_id
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options, executable_path='./lib/geckodriver')
+    driver = webdriver.Firefox(options=options, executable_path='./geckodriver')
     driver.get(url)  
     time.sleep(2)
     html = driver.page_source 
