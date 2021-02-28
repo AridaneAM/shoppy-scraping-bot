@@ -7,4 +7,4 @@ while ! nc -z postgres 5432; do
 done
 echo "Init telegram bot"
 
-exec sudo python3 -u app.py
+exec python3 -u app.py
