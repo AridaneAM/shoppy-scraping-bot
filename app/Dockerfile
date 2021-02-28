@@ -39,4 +39,4 @@ COPY entrypoint.sh ./
 
 ENTRYPOINT ["/usr/bin/dumb-init"]
 
-CMD ["./entrypoint.sh"]
+CMD ["/app/entrypoint.sh"]
