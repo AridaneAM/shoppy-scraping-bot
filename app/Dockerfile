@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y \
     xvfb
 
 # Install dumb-init 
-RUN apt install dumb-init
+RUN apt-get install dumb-init
 
 # Install Chrome WebDriver
 RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
