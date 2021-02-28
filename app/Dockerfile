@@ -37,4 +37,4 @@ COPY src/ .
 
 COPY entrypoint.sh ./
 
-ENTRYPOINT ["/usr/bin/dumb-init", "./entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/dumb-init", "entrypoint.sh"]
