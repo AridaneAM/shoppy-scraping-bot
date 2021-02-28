@@ -8,6 +8,9 @@ RUN apt-get update && apt-get install -y \
     curl unzip wget \
     xvfb
 
+# Install dumb-init 
+RUN apt install dumb-init
+
 # Install Chrome WebDriver
 RUN CHROMEDRIVER_VERSION=`curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE` && \
     mkdir -p /opt/chromedriver && \
@@ -34,4 +37,6 @@ COPY src/ .
 
 COPY entrypoint.sh ./
 
-ENTRYPOINT ["./entrypoint.sh"]
+ENTRYPOINT ["/usr/bin/dumb-init"]
+
+CMD ["./entrypoint.sh"]
